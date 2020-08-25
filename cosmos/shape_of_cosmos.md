@@ -2,7 +2,12 @@ Table of Contents
 
 # State of the Ecosystem
 
-- IBC
+This post assumes some background information about the state of the Cosmos
+ecosystem, as detailed in [XXX include ECOSYSTEM-URL].  If you aren't aware of all the
+work going on below, please check it out, or jump to the details of any
+particulr project by clicking on the link below:
+
+- IBC [XXX make hyperlink to portion in above ECOSYSTEM-URL, and for all items below].
 - Stargate
 - Cosmwasm
 - Liquid Staking
@@ -13,6 +18,8 @@ Table of Contents
 - Stargate
 - Starport
 - Tendermint/Classic
+
+[NOTE: Keep above list in sync]
 
 # A Proposed Equilibrium
 
@@ -51,3 +58,4 @@ Table of Contents
   - vs immutable PoW vs PoS
 - Reducing Surface Area
 - Liquid Staking
+
