@@ -240,11 +240,45 @@ implement two independent exchange modules.
 
 ### Simple Orderbook
 
-TODO
+In the simplest construction, an orderbook exchange just needs to implement
+1 transaction type: the "limit order".  A limit order roughly has the following
+format:
+
+```go
+type LimitOrder struct {
+    Time            time.Time
+    Type            OrderType // buy or sell
+    STatus          OrderStatus
+    Account         crypto.Address
+    Target          sdk.Coin
+    TargetFilled    sdk.Coin
+    Basis           sdk.Coin
+    BasisFilled     sdk.Coin
+}
+```
+
+Instad of market orders, we only allow limit orders.  In order to prevent
+front-running and re-ordering of transactions by the proposer, the transactions
+of a block get batched into a batch transaction at the end of every block.
+While it is possible to simplify this even further and not have batching at
+all, we believe the tradeoff is worthwhile to aim for per-block batch order
+execution for the initial iteration of the simple orderbook DEX module.
+
+List of known projects for simple orderbook implementation.
+
+* Kyokan DEX
+* ...
 
 ### Simple AMM
 
-TODO
+Order books are a necessity for institutional traders, but not all coins
+will have an active market with market makers.  For this reason, the
+complementary half of the simple orderbook exchange module is the simple
+automated market maker module -- think configurable Uniswap.
+
+See B-Harvest's proposed AMM module for more information.
+
+* https://github.com/b-harvest/Liquidity-Module-For-the-Hub
 
 ### Standard API
 
