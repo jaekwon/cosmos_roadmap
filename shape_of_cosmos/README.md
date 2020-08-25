@@ -30,8 +30,8 @@ particulr project by clicking on the link below:
 
 - Exchanging
   - Simple Orderbook
-  - Simple Uniswap
-  - Standardization
+  - Simple AMM
+  - General API
 
 - Hubs and ATOMs
   - The Function of the Hub
@@ -57,6 +57,7 @@ particulr project by clicking on the link below:
   - vs immutable PoW vs PoS
 - Reducing Surface Area
 - Liquid Staking
+- State Accumulation
 
 ## Credits and References
 
@@ -247,13 +248,14 @@ format:
 ```go
 type LimitOrder struct {
     Time            time.Time
+    Market          string // e.g. "USDT/ATOM:AMM" or "PETH/ATOM:ORDERBOOK"
     Type            OrderType // buy or sell
-    STatus          OrderStatus
+    Status          OrderStatus
     Account         crypto.Address
     Target          sdk.Coin
     TargetFilled    sdk.Coin
-    Basis           sdk.Coin
-    BasisFilled     sdk.Coin
+    Base            sdk.Coin
+    BaseFilled      sdk.Coin
 }
 ```
 
@@ -280,6 +282,36 @@ See B-Harvest's proposed AMM module for more information.
 
 * https://github.com/b-harvest/Liquidity-Module-For-the-Hub
 
-### Standard API
+### General API for Pluggable Exchanges
 
-TODO
+It might be possible to have a common minimal interface and market state and
+order transaction data.  Perhaps the same LimitOrder structure can be used for
+all kinds of markets, allowing the same client to interact with any kind of
+pluggable exchange module (where the simple orderbook and AMM modules come
+standard).
+
+```go
+// See https://github.com/jaekwon/ftnox-backend/blob/master/exchange/exchange.go
+// for inspiration.
+// TODO: merge w/ other DEX models.
+type Market interface {
+    Type() MarketType
+    AddOrder(order LimitOrder) error
+	Deposit(sdk.Coins) error
+	Withdraw(sdk.Coins) (sdk.Coins, error)
+}
+
+type OrderbookMarketState struct {
+    Target       sdk.Coin // denom and total in pool
+    Base         sdk.Coin // denom and total in pool
+    Shares       sdk.Coin // denom and total shares issued
+    Bids         sdk.Tree // [XXX object store]
+    Asks         sdk.Tree // [XXX object store]
+    HasMoreBids  bool
+    HasMoreAsks  bool
+}
+
+type AMMMarketState struct {
+	[XXX todo]
+}
+```
