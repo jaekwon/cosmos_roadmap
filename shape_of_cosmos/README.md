@@ -26,20 +26,14 @@ particulr project by clicking on the link below:
 * Shared Security
   - Interchain Staking
   - Replicated Security
-  - Other models
+  - [XXX]
 
 - Exchanging
   - Simple Orderbook
   - Simple AMM
   - General API
 
-- Hubs and ATOMs
-  - The Function of the Hub
-  - The Function of ATOM
-  - Branching for Innovation
-  - The Function of the ATOM
-  - Dealing with Hub and Zone Failures
-  - Some Math
+- Function of the Hub and ATOM token
 
 ## Short Term Plan
 
@@ -50,6 +44,7 @@ particulr project by clicking on the link below:
     - interchain accounts
   - Smart Contracts
   - AminoX & Object Store
+- Photons
 
 ## Potential Pitfalls
 
@@ -130,7 +125,6 @@ consensus trials to a blockchain that is dedicated to performing that role for
 many other chains.  I think this should be a "branch" of the Cosmos Hub, but
 more on that later [XXX].
 
-
 The single chain designated recoverer system doesn't always work though.  For
 example, there may be no designated recoverer, or the designated recoverer may
 also have failed.  I suppose you could create a linked list of recovery, but
@@ -140,7 +134,21 @@ possible to make the single-recoverer system even safer with multiple
 (non-intelligent, store-only) designated recoverers, assuming that at least one
 of these recovery mediums can store all relevant information.
 
-[XXX add more]
+For interchain staking to be supported generally, would require the handling of
+evidence to be made from within the ABCI application.  Currently, the
+TendermintCore implementation has an EvidenceReactor, which started off as a
+copy of the mempool reactor for general transactions, but made separate in
+order to provide some guarantees on liveness and availability of the slashing
+data.  Here, I am advocating to remove Evidence related messages from ABCI, to
+remove the evidence reactor, and implement all slashing logic from within the
+ABCI application logic.  And later as a matter of secondary priority, to
+improve the mempool reactor with features for prioritization of general []byte
+transactions.  (I'm making these changes for Tendermint/Classic, but it isn't
+complete yet).
+
+Once we have interchain BFT accountability, we can add additional features for
+the Cosmos Hub, such as data availability challenges, block header challenges,
+and so on.  More on that later.
 
 ### Interchain Staking Economics
 
@@ -216,6 +224,8 @@ rewards to interchain stakers from a particular zone, like the Cosmos Hub.
 Market dynamics would ensure at least some participation.  The remaining
 challenge would be to tune the %'s, which could initially be done by governance
 experimentations, but later automatically using IBC price feeds.
+
+### Replicated Security
 
 ## Exchanging
 
@@ -315,3 +325,22 @@ type AMMMarketState struct {
 	[XXX todo]
 }
 ```
+
+## Function of the Hub and ATOM Token
+
+If there is to be many hubs and many staking tokens, what is the purpose of the Cosmos Hub?
+
+### Function of the Hub
+
+* Serving as hub to many zones for IBC token pegging
+* "Home" zone for the ATOM & PHOTON tokens
+* Core governance, staking, "bank"
+* IBC module w/ "bank" integration
+* Replicated security chain provisioning
+
+### Function of the ATOM Token
+
+* BFT consenus trial & interchain staking
+* Branching off new experiments
+
+
