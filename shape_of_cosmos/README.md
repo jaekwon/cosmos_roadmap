@@ -307,12 +307,88 @@ BARs).  When I x-stake my PHOTONs to validator A to receive BAR staking tokens,
 I am now exposed to the price of BAR tokens.  When I unbond my BAR tokens to
 get back PHOTONs, I may get more or less depending on market conditions.
 
-*Arguably, all new public zones should start with a reserve pool of x-staked
+Arguably, *all new public zones should start with a reserve pool of x-staked
 tokens for zone and ecosystem safety*.  I'm not aware of any other way to tell
 without any prior information, whether a blockchain has any stake behind it or
-not.
+not.  A lot of us have been on a gardening kick, so lets call this "branching".
 
 ### Replicated Security
+
+When I say "shared security", I mean one of two very different things.  Maybe I
+should stop saying "shared security" altogether.  Besides interchain staking,
+like having a lifeline in a peer when one loses one's mind, there is also
+replicated validator sets, which is more like having a leader and followers,
+where the followers have no agency at all.  These follow-chains follow the
+validator set changes as they happen on the single leader-chain.
+
+It's possible to do this without a bi-directional IBC connection, but merely a
+one-way channel of state reads.  No "packets" need to get involved at all, but
+there is the notion of a peer chain with validator set updates which are
+submitted on the follow-chains. We could require that follow-chains follow
+validator set updates frequently (but not necessarily all of them) say by
+halting if necessary until the changes are applied.
+
+NOTE: This use for a one-way IBC channel (and there are more use-cases too) is
+compelling.  Here's an interface design question: What's the most elegant
+implementation of bi-directional IBC communication channels that are composed
+of two one-way channels?
+
+This form of replicated security requires that all validators on the
+leader-chain also validate all the follow-chains.  It's also possible to shard
+(sharD, not sharE) the validator set, such that not all validators are required
+on follow-chains.  So this would be "sharded replicated security".  If you
+don't require the follow-chain validators to be selected from the set of
+validators on the leader-chain, then you have "sharded (non-replicated)
+security".  
+
+In all cases, evidence of signing faults get recorded in the leader-chain,
+consequences happen, and all the follow-chains follow suit.
+
+You can also have interchain-staked replicated security.  A new hub can be
+branched and interchain staked, and it can go on and offer replicated security,
+sharded replicated security, or sharded non-replicated security to any number
+of zones.
+
+#### Economics of Replicated Security and Sharded Security
+
+I was there when Amazon EC2 started, and grew from nothing to the geological
+phenomena that it is today.  The same will happen in the public blockchain
+sector, and the pendulum will once again swing from time-shared mainframes
+(EC2) to decentralized personal computers (sovereign zones).
+
+I don't know to what degree we will have homogenous distributed computing --
+e.g. anyone can become a validator and making meaningful contributions.  What I
+do know is that economy of scale applies to the industry of validating, and
+those who invest in their local datacenters with fault-tolerant peer
+incentivized and people owned internet connectivity, those validators will have
+the most stake in processing people's transactions.
+
+The infrastructure of secure internet communication, computation, and
+validation should all be owned by their respective communities, if they want,
+and many will and rightfully should.
+
+Like Amazon EC2 was able to dominate by innovating early and doing the job
+well, the same will be true of the validation-as-a-service industry, and Cosmos
+is first and will do it better than anyone, for as long as we don't lose focus,
+or make critical mistakes that undermine trust in our competence as observed by
+the users.
+
+There's an infinite universe of possible VaaS models that we could explore, and
+the exact details don't matter so much as this: if we make it easy to branch
+and maintain functional zones, and to interchain-stake them and thus to support
+them in cases of failure, such that the stake behind all zones could be
+quantified, then we have an infinitely scalable, decentralized token network.
+
+The transaction fees alone in a massively easily scalable blockchain network
+that solves interchain staking and is producing the next generation token
+ecosystem, does not need to worry about competing for more features.  By design
+of the network, features should ideally first be tested on a zone that branches
+off of the hub, there should be competition among different designs.  The hub
+with the most economic centrality would have the least features, which is the
+most secure and stable, and thus suitable for managing staking for other
+networks that depend on the hub for its reliability.  Adding unnecessary
+features and complexity to the Cosmos Hub directly destroys its Schelling point
+status, repels potential interchain stakers.
 
 ## Exchanging
 
@@ -365,7 +441,6 @@ execution for the initial iteration of the simple orderbook DEX module.
 
 List of known projects for simple orderbook implementation.
 
-* Kyokan DEX
 * ...
 
 ### Simple AMM
@@ -418,6 +493,9 @@ type AMMMarketState struct {
 If there is to be many hubs and many staking tokens, what is the purpose of the
 Cosmos Hub?
 
+The Cosmos Hub should be the standard interchain staking hub. It becomes the
+standard by doing one thing really, really well.  Everything that is 
+
 ### Function of the Hub
 
 * Serving as hub to many zones for IBC token pegging
@@ -430,5 +508,3 @@ Cosmos Hub?
 
 * BFT consenus trial & interchain staking
 * Branching off new experiments
-
-
