@@ -98,41 +98,45 @@ If there is a chain-fork, aka double-spend attack, where say two blocks get
 committe at the same height, there are enough validators (more than 1/3) to
 censor evidence from being submitted to the blockchain, so the previous
 construction doesn't work.  *One way to prepare blockchain failure is to
-delegate the handling of failure via a trial on another blockchain (the
-"designated recoverer") that was previously self-elected by that blockchain*.
-Upon the discovery of Evidence that a chain has halted, represented by two
-conflicting Commits, the designated recoverer and validators enter into a
-challenge and response protocol to determine who is at fault for the fork of
-that chain.  The protocol is described in the Tendermint wiki, but is getting
-formalized and implemented.  (At least it will be on Tendermint Classic, a fork
-of Tendermint that I'm working on to refine the original design principles and
-to prototype improvements across the stack.  But more about that later. [XXX])
+delegate the handling of failure via a "consensus trial" on another blockchain
+(the "consensus court" zone) that was previously self-elected by that
+blockchain*.  Upon the discovery of Evidence that a chain has halted,
+represented by two conflicting Commits, the consensus court and validators
+enter into a challenge and response protocol to determine who is at fault for
+the fork of that chain.  The protocol is described in the Tendermint wiki, but
+is getting formalized and implemented.  (At least it will be on Tendermint
+Classic, a fork of Tendermint that I'm working on to refine the original design
+principles and to prototype improvements across the stack.  But more about that
+later. [XXX])
 
-The designated recoverer does not need to be too intelligent.  It just needs to
-be a system that all observers can observe, and provides some guarantees around
-liveness and the ability to keep track of time.  In the very minimum, it just
-needs to serve as a communication medium for sharing all evidence, like a
-shared network folder that faithfully keeps track of timestamps.  All relevant
-evidence must be submitted within the synchronous time window, or your
-validator may get slashed, or at least not able to participate in the re-org
-rebooted chain until governance decides what should be done.
+The consensus court does not need to be too intelligent.  It could just be a
+"consensus court yard".  It just needs to be a system that all observers can
+observe, and provides some guarantees around liveness and the ability to keep
+track of time.  In the very minimum, it just needs to serve as a communication
+medium for sharing all evidence, like a shared network folder that faithfully
+keeps track of timestamps.  All relevant evidence must be submitted within the
+synchronous time window, or your validator may get slashed, or at least not
+able to participate in the re-org rebooted chain until governance decides what
+should be done.
 
-A more intelligent designated recoverer could record the result of the
-"consensus trial" in the Merkle store.  Most clients or smart contracts will
-prefer to rely on a particular single recoverer -- they will just want to
-delegate the responsibility of keeping track of consensus failures and
-consensus trials to a blockchain that is dedicated to performing that role for
-many other chains.  I think this should be a "branch" of the Cosmos Hub, but
-more on that later [XXX].
+A more intelligent consensus court could record the result of the "consensus
+trial" in the Merkle store.  Most clients or smart contracts will prefer to
+rely on a particular single recoverer -- they will just want to delegate the
+responsibility of keeping track of consensus failures and consensus trials to a
+blockchain that is dedicated to performing that role for many other chains.  I
+think this should be a "branch" of the Cosmos Hub, but more on that later
+[XXX].
 
-The single chain designated recoverer system doesn't always work though.  For
-example, there may be no designated recoverer, or the designated recoverer may
-also have failed.  I suppose you could create a linked list of recovery, but
-that may not make much of an improvement in practice, compared to just
-defaulting to let governance deal with this rare fault.  It is probably
-possible to make the single-recoverer system even safer with multiple
-(non-intelligent, store-only) designated recoverers, assuming that at least one
-of these recovery mediums can store all relevant information.
+The single chain court system doesn't always work though.  For example, there
+may be no designated court, or the designated court may also have failed.  I
+suppose you could create a linked list of recovery, but that may not make much
+of an improvement in practice, compared to just defaulting to let governance
+deal with this rare fault.  It is probably possible to make the
+single-recoverer system even safer with multiple (non-intelligent, store-only)
+courts, assuming that at least one of these recovery mediums can store all
+relevant information.  Arguably multiple smart court (zones) could run a
+consensus protocol through IBC, but this nested consensus approach in general
+seems like unnecessary complexification.
 
 For interchain staking to be supported generally, would require the handling of
 evidence to be made from within the ABCI application.  Currently, the
@@ -143,8 +147,8 @@ data.  Here, I am advocating to remove Evidence related messages from ABCI, to
 remove the evidence reactor, and implement all slashing logic from within the
 ABCI application logic.  And later as a matter of secondary priority, to
 improve the mempool reactor with features for prioritization of general []byte
-transactions.  (I'm making these changes for Tendermint/Classic, but it isn't
-complete yet).
+transactions (and this is the kind of protocol prototyping that
+Tendermint/Classic is for).
 
 Once we have interchain BFT accountability, we can add additional features for
 the Cosmos Hub, such as data availability challenges, block header challenges,
@@ -166,48 +170,29 @@ Protocol".  Alice stakes 100ATOM with a transaction on the Cosmos Hub, and this
 increases the real security of BarChain, because the Cosmos Hub ensures that in
 the case of consensus failure on BarChain, staked ATOMs will get slashed.
 
+#### Interchain Staking Inflationary ATOMs
+
 There's one question here that pops up, for readers aware of the economics of
 the Cosmos Hub: why would you "stake" ATOMs on BarChain if you aren't going to
-earn inflationary rewards of ATOMs?  I'll address that, but first lets consider
-a simpler construction by assuming that you can stake other tokens, like the
-hypothetical PHOTON token, which avoids the question.
+earn inflationary rewards of ATOMs? 
 
-In the simplest construction, interchain staking is not like delegating to
-one's choice of validators on the Cosmos Hub -- it would be complicated to deal
-with the security implications of staking to only a particular validator on
-that zone, because of a variety of complicating factors -- the chain's total
-interchain security may change drastically depending on the activity status of
-that validator.  The amount staked in this way would not be representative of
-the "true" security that is being afforded via interchain staking -- for
-example, imagine if $1M worth of PHOTONS were staked on the least validator on
-BarChain, when the total market cap of the BAR staking token were only $100K.
-The validators to whom the PHOTONs were interchain staked to need not
-participate in any attack at all, so potentially nothing is "at stake".
+It wouldn't be fair to bypass the Cosmos Hub ATOM inflation tax simply for
+staking those ATOMs on another chain.  If that were the case, everyone rational
+would stake their ATOM tokens on a fake zone that did nothing but the bare
+minimum, and would therefore yeild higher returns because it would be easier to
+secure (by virtue of it not doing anything).
 
-Instead, you could stake to all the validators in proportion to their current
-voting power, or in other words, you could stake on the zone itself.  I'll call
-this "auto-staking". For example, if a validator that had 10% of the voting
-power were to get slashed 30% on BarChain, everyone who interchain-staked
-PHOTONs from the Cosmos Hub to BarChain would get slashed 3%.
+Let's say that you could stake to all the validators in proportion to their
+current voting power, or in other words, you could stake on the hub itself.
+I'll call this "auto-staking". For example, if a validator that had 10% of the
+voting power were to get slashed 30% on the Cosmos Hub, everyone who
+auto-staked ATOMs on the Cosmos Hub would get slashed 3%.
 
-Now let's discuss interchain staking the ATOM token. It wouldn't be fair to
-bypass the Cosmos Hub ATOM inflation tax simply for staking those ATOMs on
-another chain.  If that were the case, everyone rational would stake their ATOM
-tokens on a fake zone that did nothing but the bare minimum, and would
-therefore yeild higher returns because it would be easier to secure (by virtue
-of it not doing anything).
-
-You could try to design a system wherein there is some relative penalty or tax
-for interchain staking as opposed to native staking.  I supposed the thing to
-balance here is the relative amount of staking on the hub vs other zones, but
-the more ATOMs there are, whether free or interchain staked, the more the Hub
-is vulnerable to hostile takeovers.
-
-The simple workaround is the following: let ATOM holders interchain-stake, but
-require them to also double-stake on the Cosmos Hub itself via auto-staking.
-Now, there is no "free lunch" to interchain stakers, so they can also earn
-inflationary ATOMs.  Triple-staking would not be allowed -- it's not needed for
-interchain staking, and it would make security guarantees worse.
+So, one solution is to let ATOM holders interchain-stake, but require them to
+also double-stake on the Cosmos Hub itself via auto-staking.  Now, there is no
+"free lunch" to interchain stakers, so they can also earn inflationary ATOMs.
+Triple-staking would not be allowed -- it's not needed for interchain staking,
+and it would make security guarantees worse.
 
 Auto-staking may also help mitigate validator delegation centralization.
 Auto-staking has less of a centralizing effect than staking only to the top
@@ -217,13 +202,17 @@ have more tokens to pay for equal validator subsidies, which I generally
 support (to a limit).  Interchain staking makes a case to implement
 auto-staking soon.
 
-In this construction, it is the responsibility of the staked zone to reward the
-ATOM or PHOTON holder who interchain staked the zone.  There could be many ways
-to implement this, but a simple way would be to allocate some % of inflationary
-rewards to interchain stakers from a particular zone, like the Cosmos Hub.
-Market dynamics would ensure at least some participation.  The remaining
-challenge would be to tune the %'s, which could initially be done by governance
-experimentations, but later automatically using IBC price feeds.
+Interchain-staking non-inflationary tokens like PHOTONS don't require this
+workaround.
+
+#### Interchain Staking Considerations
+
+*The amount of voting power you receive on an interchain staked zone should be
+sublinear to the total interchain staked amount*.  In bonding-curve speak, this
+is like saying that the amount of continuous token you receive should decrease
+per (say) PHOTON interchain-bonded the more PHOTONS were already previously
+bonded.  Otherwise, that zone has a "boundary issue", in that outsized (say)
+PHOTON holders could fairly easily conduct a hostile takeover of the zone.
 
 ### Replicated Security
 
@@ -328,7 +317,8 @@ type AMMMarketState struct {
 
 ## Function of the Hub and ATOM Token
 
-If there is to be many hubs and many staking tokens, what is the purpose of the Cosmos Hub?
+If there is to be many hubs and many staking tokens, what is the purpose of the
+Cosmos Hub?
 
 ### Function of the Hub
 
