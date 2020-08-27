@@ -170,6 +170,12 @@ Protocol".  Alice stakes 100ATOM with a transaction on the Cosmos Hub, and this
 increases the real security of BarChain, because the Cosmos Hub ensures that in
 the case of consensus failure on BarChain, staked ATOMs will get slashed.
 
+A key principle of staking is that there should generally be agency and
+intelligence involved in deciding which validators to stake to.  This agency is
+exercised by delegating staking tokens to your choice of validator.  So, here I
+assume a model where you somehow receive some number of BarChain's native
+staking token in return for interchain-staking for BarChain ATOMs on the hub.
+
 #### Interchain Staking Inflationary ATOMs
 
 There's one question here that pops up, for readers aware of the economics of
@@ -194,25 +200,47 @@ also double-stake on the Cosmos Hub itself via auto-staking.  Now, there is no
 Triple-staking would not be allowed -- it's not needed for interchain staking,
 and it would make security guarantees worse.
 
-Auto-staking may also help mitigate validator delegation centralization.
-Auto-staking has less of a centralizing effect than staking only to the top
-validators.  If we also tax auto-staking a bit, and use the proceeds to
-subsidize a base-income for all validators, then the common reserve pool would
-have more tokens to pay for equal validator subsidies, which I generally
-support (to a limit).  Interchain staking makes a case to implement
-auto-staking soon.
+The down-side of auto-staking is that it's a form of "blind staking" -- a loss
+of agency on behalf of the staker to the manual-stakers.  If there were 90% of
+ATOMs that were auto-staked, then delegating manually brings 9x the extra
+voting power with it, and so the system becomes overall unstable, and bribing
+with side-channel paybacks would become the norm -- something we want to avoid.
 
-Interchain-staking non-inflationary tokens like PHOTONS don't require this
-workaround.
+Various forms of interchain-staking with ATOMs can work, but it invites
+yield-seeking capital to hold atoms to stake on various zones, and eventually
+defeats the purpose of having a separate staking token for the hub in the first
+place.  The amount or ratio of ATOMs thus interchain-staked could be limited,
+but this is still a slippery slope.
 
-#### Interchain Staking Considerations
+#### Interchain Staking Non-inflationary Tokens
 
-*The amount of voting power you receive on an interchain staked zone should be
-sublinear to the total interchain staked amount*.  In bonding-curve speak, this
-is like saying that the amount of continuous token you receive should decrease
-per (say) PHOTON interchain-bonded the more PHOTONS were already previously
-bonded.  Otherwise, that zone has a "boundary issue", in that outsized (say)
-PHOTON holders could fairly easily conduct a hostile takeover of the zone.
+Interchain-staking non-inflationary tokens like PHOTONS don't suffer from the
+above problem/feature, so interchain-staking should be done with these tokens.
+
+Furthermore, it's possible to have significantly more value at stake with
+non-ATOM tokens at stake via interchain-staking from the hub.  In short, the
+idea here is to respect the sovereignty of a token according to well defined
+contracts explicitly made beforehand that govern that token, such that the
+zones connected to a hub can keep the hub accountable. [XXX more on this, and
+how this is not the case for say, pegged ETH].
+
+And, to put to rest the notion of interchain-staking ATOMs, I'd like to mention
+that any PHOTONs or native currency tokens that don't inflate exponentially
+like the ATOM token by design can be inflated on the hub and rewarded to ATOM
+stakers in the form of inflationary block rewards.  So there is a clear link
+between the market of interchain-staking and value accrual to the ATOM token,
+even if the ATOM token can not be interchain-staked.
+
+#### Sovereignty Preserving Bonding Curves
+
+*The amount of voting power or influence you receive on an interchain staked
+zone should be sublinear to the total interchain staked amount*.  In
+bonding-curve speak, this is like saying that the amount of continuous token
+you receive should decrease per (say) PHOTON interchain-bonded the more PHOTONS
+were already previously bonded.  Otherwise, that zone has a "sovereignty
+issue", in that outsized (say) PHOTON holders could fairly easily conduct a
+hostile takeover of the zone.  Conceptually, it's like putting a cap on the
+total amount of interchain-staking 
 
 ### Replicated Security
 
