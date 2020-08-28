@@ -33,18 +33,17 @@ particulr project by clicking on the link below:
   - Simple AMM
   - General API
 
-- Function of the Hub and ATOM token
+- Function of the Hub
 
 ## Short Term Plan
 
-- Technical
-  - Chain Upgrading
-  - Hub Staking
-  - Liquid Staking
-    - interchain accounts
-  - Smart Contracts
-  - AminoX & Object Store
 - Photons
+- Chain Upgrading
+- Hub Staking
+- Liquid Staking
+- interchain accounts
+- Smart Contracts
+- AminoX & Object Store
 
 ## Potential Pitfalls
 
@@ -349,47 +348,6 @@ branched and interchain staked, and it can go on and offer replicated security,
 sharded replicated security, or sharded non-replicated security to any number
 of zones.
 
-#### Economics of Replicated Security and Sharded Security
-
-I was there when Amazon EC2 started, and grew from nothing to the geological
-phenomena that it is today.  The same will happen in the public blockchain
-sector, and the pendulum will once again swing from time-shared mainframes
-(EC2) to decentralized personal computers (sovereign zones).
-
-I don't know to what degree we will have homogenous distributed computing --
-e.g. anyone can become a validator and making meaningful contributions.  What I
-do know is that economy of scale applies to the industry of validating, and
-those who invest in their local datacenters with fault-tolerant peer
-incentivized and people owned internet connectivity, those validators will have
-the most stake in processing people's transactions.
-
-The infrastructure of secure internet communication, computation, and
-validation should all be owned by their respective communities, if they want,
-and many will and rightfully should.
-
-Like Amazon EC2 was able to dominate by innovating early and doing the job
-well, the same will be true of the validation-as-a-service industry, and Cosmos
-is first and will do it better than anyone, for as long as we don't lose focus,
-or make critical mistakes that undermine trust in our competence as observed by
-the users.
-
-There's an infinite universe of possible VaaS models that we could explore, and
-the exact details don't matter so much as this: if we make it easy to branch
-and maintain functional zones, and to interchain-stake them and thus to support
-them in cases of failure, such that the stake behind all zones could be
-quantified, then we have an infinitely scalable, decentralized token network.
-
-The transaction fees alone in a massively easily scalable blockchain network
-that solves interchain staking and is producing the next generation token
-ecosystem, does not need to worry about competing for more features.  By design
-of the network, features should ideally first be tested on a zone that branches
-off of the hub, there should be competition among different designs.  The hub
-with the most economic centrality would have the least features, which is the
-most secure and stable, and thus suitable for managing staking for other
-networks that depend on the hub for its reliability.  Adding unnecessary
-features and complexity to the Cosmos Hub directly destroys its Schelling point
-status, repels potential interchain stakers.
-
 ## Exchanging
 
 Assuming IBC and token peg transfers over IBC is implemented on chain A and
@@ -496,15 +454,85 @@ Cosmos Hub?
 The Cosmos Hub should be the standard interchain staking hub. It becomes the
 standard by doing one thing really, really well.  Everything that is 
 
+### Economics of Replicated Security and Sharded Security
+
+I was there when Amazon EC2 started, and grew from nothing to the geological
+phenomena that it is today.  The same will happen in the public blockchain
+sector, and the pendulum will once again swing from time-shared mainframes
+(EC2) to decentralized personal computers (sovereign zones).
+
+I don't know to what degree we will have homogenous distributed computing --
+e.g. anyone can become a validator and making meaningful contributions.  What I
+do know is that economy of scale applies to the industry of validating, and
+those who invest in their local datacenters with fault-tolerant peer
+incentivized and people owned internet connectivity, those validators will have
+the most stake in processing people's transactions.
+
+The infrastructure of secure internet communication, computation, and
+validation should all be owned by their respective communities, if they want,
+and many will and rightfully should.
+
+Like Amazon EC2 was able to dominate by innovating early and doing the job
+well, the same will be true of the validation-as-a-service industry, and Cosmos
+is first and will do it better than anyone, for as long as we don't lose focus,
+or make critical mistakes that undermine trust in our competence as observed by
+the users.
+
+There's an infinite universe of possible VaaS models that we could explore, and
+the exact details don't matter so much as this: if we make it easy to branch
+and maintain functional zones, and to interchain-stake them and thus to support
+them in cases of failure, such that the stake behind all zones could be
+quantified, then we have an infinitely scalable, decentralized token network.
+
+In short, ATOMs and whatever PHOTONs it decides on, fundamentally derive their
+value from the following:
+
+ * Interchain staking, aka "consensus court"
+ * PHOTON inflations
+ * Transaction fees across replicated zones
+
+The transaction fees alone in a massively easily scalable blockchain network
+that solves interchain staking and is producing the next generation token
+ecosystem.
+
 ### Function of the Hub
 
-* Serving as hub to many zones for IBC token pegging
-* "Home" zone for the ATOM & PHOTON tokens
-* Core governance, staking, "bank"
-* IBC module w/ "bank" integration
-* Replicated security chain provisioning
+The ultimate responsibility of the hub is to secure the ecosystem.  The
+ecosystem is supported by a handful of primitives, such as interchain-token
+pegging, and staking, running the DPoS algorithm for the ATOM token, running
+the governance function (and soon peer communication could be on-chain too),
+and providing the IBC and basic DEX modules as described here.
 
-### Function of the ATOM Token
+Experimental features should first be tested on a zone that branches off of the
+hub, or on a replicated follow-chain that follows the hub, rather than be added
+to the hub's leader-chain itself.  If it isn't criticial for the ultimate
+responsibility of the hub, and it isn't making a sigificant improvement to the
+performance of the hub, then it doesn't belong in the hub, if anything it is
+detrimental to the hub, as it adds more complexity and surface area for bugs
+and exploits.
 
-* BFT consenus trial & interchain staking
-* Branching off new experiments
+The software running on the hub, whether leader-chain or follow-chains, needs
+to be of utmost quality.  It's likely that initially, validators in the Cosmos
+ecosystem will rely on existing virtualization technology to run the many zones
+that they validate or peer on, and they all seem to be in a state of
+development with the occasional critical bug.  Cosmos Hub (and any hub) should
+not approve of new software to be run under replicated security without first
+auditing and understanding what it does -- and this takes time.
+
+New financial and technical experiments should best be rolled out slowly,
+rather than all out, to protect the users instead of inadvertantly or
+maliciously channeling their tokens to the hands of exploiters.
+
+The hub via its supporters of the ecosystem should incentivize competition
+among different designs for the critical components that it needs.  We're not
+going to figure out the final design of DEXes, IBC, consensus, native and
+interchain staking, governance, or anything else, in the first try.  There will
+be failures, sometimes massive, theft, and even sabotage and theft from within
+the ecosystem (the same way it happened to Bitcoin and Ethereum).
+
+The ultimate principle for a hub is safety.  Safety over liveness, safety over
+features.  Provably quantifiable security.  It proves its worth over time by
+not making big existential mistakes.  It doesn't lose its optionality, and it
+isn't swayed by contributors eager to contribute for recognition, or
+competition with different shiny features.  It seeds competition around it for
+new innovations, and takes a stake in it.
