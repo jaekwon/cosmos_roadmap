@@ -23,7 +23,7 @@ particulr project by clicking on the link below:
 
 ## Shape of Cosmos
 
-* Shared Security
+- Shared Security
   - Interchain Staking
   - Replicated Security
   - [XXX]
@@ -32,18 +32,13 @@ particulr project by clicking on the link below:
   - Simple Orderbook
   - Simple AMM
   - General API
+  - DEX Zones
 
 - Function of the Hub
 
-## Short Term Plan
+- Pegging to PoW vs PoS
 
-- Photons
-- Chain Upgrading
-- Hub Staking
-- Liquid Staking
-- interchain accounts
-- Smart Contracts
-- AminoX & Object Store
+## Short Term Priorities
 
 ## Potential Pitfalls
 
@@ -493,7 +488,11 @@ value from the following:
 
 The transaction fees alone in a massively easily scalable blockchain network
 that solves interchain staking and is producing the next generation token
-ecosystem.
+ecosystem.  ATOM and PHOTONs don't need to be and should not be the "world
+dominant" staking and currency tokens for the tide to left all of us -- if
+anything, ensuring a rich and well connected ecosystem of independent sovereign
+competing and cooperative zones is what we need to prevent the untimely
+resurgence of Moloch.
 
 ### Function of the Hub
 
@@ -536,3 +535,33 @@ not making big existential mistakes.  It doesn't lose its optionality, and it
 isn't swayed by contributors eager to contribute for recognition, or
 competition with different shiny features.  It seeds competition around it for
 new innovations, and takes a stake in it.
+
+## Short Term Priorities
+
+Here are short term priorties beyond IBC.
+
+### DEX modules
+
+Already written about above.
+[XXX start mailing list].
+
+### Chain Upgrading
+
+### Photons
+
+### Peggy & Alternatives
+
+### Interchain Staking
+
+### Liquid Staking
+ - Interchain accounts
+ - Proportional slashing
+
+### Contracts
+ - Ethermint
+ - CosmWasm
+ - More
+
+### Tendermint/Classic
+
+### Merkle Store Improvements
