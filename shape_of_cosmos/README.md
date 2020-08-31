@@ -547,21 +547,302 @@ Already written about above.
 
 ### Chain Upgrading
 
+It's true that the hub will need to occasionally upgrade to support different
+IBC implementations or plugins.  This is the most compelling reason for
+frequent upgrades to a conservative hub.  Even Peggy is being proposed as a
+module to be implemented directly on the hub.
+
+Given the arguments made in this paper, and the following choices for chain
+upgrading, I argue that the hub's lead-chain should not adopt WASM at this
+time, and instead propose an alternative roadmap.
+
+There are two generally good ways of supporting chain upgrades that I am aware
+of, and there may be more, that don't require WASM.  One is to consider the app
+to be a separate container or process, and to create an ABCI middleware-app
+that switches between applications appropriately, as directed by ABCI.  This
+can pretty easily be done via network or Unix sockets, but it can also be done
+via Go plugins.  I'm not advocating for the whole application to implement a Go
+plugin interface, but rather for the IBC module to allow the expansion of
+functionality by compiling a Go dynamic plugin.
+
+NOTE: The main limitation of Go plugins at this time is that unloading them
+is not supported, so this doesn't work for general smart contracts, but it's
+perfect for uploading new IBC components.
+
+The first method is a specification and formalization of ABCI and application
+versions that all blockchains will occasionally need.  The second method is
+complementary, and allows for upgrading within the same container or process,
+without any application version upgrades.  These processes or containers could
+also be executed in the form of a WASM image, so we have several valid options
+for process isolation and upgrading as conducted by ABCI middleware.
+
+The second method using Go plugins is basically smart contracts for
+long-running smart contracts, written in Go. It just needs a bit of AST
+introspection and sanitizing (the same stuff that powers gofmt), and can be
+implemented easily.  You could actually build a Go-based smart contracting
+system with just AST validation/manipulation and the occasional Go plugin
+refresh, if the creation of new smart contracts is sufficiently throttled.
+
+One of my goals for the end of 2020 for Tendermint/Classic is to demonstrate
+both upgrading mechanisms.  From there it should be easy to integrate those
+protocols or similar ones to TendermintCore and the CosmosSDK.
+
+Moving on, to smart contracts.
+
+### Smart Contracts
+
+While I support WASM, and projects like CosmWASM, I am strongly opposed to
+running WASM on the Cosmos Hub's lead-chain.  Primarily, because it increases
+the surface area for attack by an order of magnitude.  WASM as a spec and its
+implementations are still maturing, and though available on browsers, it hasn't
+gone through the gauntlet of time.  All new complex technologies like WASM,
+like Java, Linux, and even Go, in hindsight have numerous bugs that could have
+or were used maliciously.  The same will be true of any WASM integration with
+the hub, and this potential for exploits combined with the massive potential
+rewards (especially of pegged PoW tokens) makes such exploits an inevitability.
+
+Given the history of the evolution of these kinds of technologies, and the
+principle of hub minimalism and conservatism, I feel that I must voice my
+strong opposition to mandating the adoption of WASM for the lead-chain, even in
+the form of governance-based permissioned code injection.
+
+What WASM is good at is native speed execution with memory bounds and sandbox
+isolation. By virtue of the problem that it is trying to solve, the primitives
+are more like machine instructions than a language abstract syntax tree.  Both
+Ethereum and Polkadot have taken this low-level machine approach to smart
+contract development, but I believe the opportunity will be in offering
+something closer to procedural programming as in Javascript, rather than the
+specifics of the machine environment, of which there are many choices.
+
+It is Solidity that ultimately made the EVM easy to use, though it's not
+without its drawbacks.  It is OCaml that lets Tezos create formal proofs on
+functions.  And in the context of massive multiuser smart contracts, native
+speed of execution doesn't matter as much as Merkle store latency, so you might
+as well run an AST interpreter.
+
+#### Notes on CosmWASM
+
+WASM itself is a near-machine-level virtual machine that is designed for
+restricted memory allocation and isolation.  What it doesn't do is prescribe
+much more about how the programming language works at a higher level, because
+it's designed to accommodate any language.  So there is still the work that
+must be done to make this WASM machine accessible to the programmer.  CosmWASM
+provides this glue initially making it possible to program in Rust, but other
+languages with support for the WASM build target can be used eventually.
+
+Here are what I see are the primary design philosophies of CosmWASM (as would
+be differentiated from alternative smart contracting system designs in our
+emerging ecosystem):
+
+ * Based on the Actor Model
+ * Atomic Execution
+ * Dynamically Linking Host Modules
+
+I like the actor model.  It makes it easier to model, as the idea is that all
+state is local to the actor, and all state changes happen via a sequence of
+simple data messages.  The design of Tendermint itself is based on a modified
+actor model where peer connections have multiplexed channels (e.g. fairness)
+which helps with liveness in a Byzantine setting.  An ABCI app itself is a kind
+of actor, and here I discussed ABCI middleware for upgrading, and in the future
+there will be more discussions around extending ABCI for dealing with
+concurrent ABCI sub-applications.
+
+I'm in favor of both the actor model, and would like to see this built in Go,
+built on top of primitives proposed in the CosmosSDK.  These are things like
+the "SubKVStore" decorator for stores which allow you to provide access to only
+part of a store, which allow for the construction of Actors in the likeness of
+Keepers that each have access to their local substore.  In short, we could
+build an actor model system on the SDK without WASM, if we wanted to.
+
+A good use-case for this would be for say, parallelizing an ABCI application.
+Each parallel instance may best be modeled as an Actor; though there will also
+be needs for alternatives, such as something based on a versioned/shared-memory
+model which may help with performance in some applications.
+
+I don't agree with CosmWASM's justification for promoting this model in terms
+of security.
+
+> Secondly, each Actor can effectively run on its own thread, with its own queue.
+> This both enables concurrency (which we don't make use of in CosmWasm... yet),
+> and serialized execution within each actor (which we do rely upon). This means
+> that it is impossible for the Handle method above to be executed in the middle
+> of a previously executed Handle call. Handle is a synchronous call and returns
+> before the Actor can process the next message. *This feature is what protects us
+> from reentrancy by design*. - https://docs.cosmwasm.com/architecture/actor.html
+
+I think what is being implied here is that programming the traditional way with
+type-checked languages like Go or Solidity isn't good because of potential
+security issues, and that CosmWASM/WASM can solve this by virtue of supporting
+the Actor model.  Here, I want to show how to solve this in Go by doubling down
+on the original premise that this is a good language for building secure
+applications out of.  If you've read the technical discussions about Ethereum's
+DAO hack, the analysis doesn't recommend the following type of remedy, which
+was maybe not available to Solidity at the time (and maybe still doesn't, I
+don't know) but is afforded by Go. 
+
+```go
+func (_ BankKeeper) Withdraw(ctx sdk.Context, addr sdk.Address, amount sdk.Coins) *HotCoins {
+    ... 
+}
+
+func (_ BankKeeper) Deposit(ctx sdk.Context, addr sdk.Address, amount *HotCoins) {
+    ...
+}
+
+...
+hotcoins := bk.Withdraw(ctx, addr1, amount)
+bk.Deposit(ctx, addr2, hotcoins)
+...
+```
+
+The idea is that HotCoins is something that only be constructed by withdrawing,
+and so for any receipt of tokens to happen, it must be withdrawn from an
+account that has a positive balance.  The logic of the bank keeper and HotCoins
+and the state of Context and HotCoins would ensure that everything is accounted
+for, even that all withdrawn coins are deposited somewhere.  The BankKeeper
+could check this invariance for all transactions at the end of every
+transaction.
+
+This works because the Go language is Object Oriented.  Deposit requires a kind
+of object that can only be created by Withdrawing, and thereby solving the
+re-entrancy problem.  You don't need to sacrifice recursion; you can write it
+the way that TheDAO did, but you just need a proper OOP langauge to express it.
+The Actor model works really well when you're dealing with many independent
+threads of execution, such as in a telephone network, for which Erlang is
+designed.  But when you use it in leu of (potentially recursive) function calls,
+you're forced to either deal with the complexity of asynchrony (e.g. persist state
+and deal with either success or failure of an IBC call later), or you have to
+abort the entire transaction somehow.  The CosmosSDK does this very well,
+by letting the programmer simply panic, leveraging the native feature of Go.
+How would it work in an Actor-based system?
+
+> Before executing a Msg that came from an external transaction, we create a
+> SavePoint of the global data store, and pass in a subset to the first contract.
+> We then execute all returned messages inside the same sub-transaction. If all
+> messages succeed, then we can commit the sub-transaction. If any fails (or we
+> run out of gas), we abort execution and rollback the state to before the first
+> contract was executed.
+> 
+> This allows us to optimistically update code, relying on rollback for error
+> handling. For example if an exchange matches a trade between two "ERC20"
+> tokens, it can make the offer as fulfilled and return two messages to move
+> token A to the buyer and token B to the seller. (ERC20 tokens use a concept of
+> allowance, so the owner "allows" the exchange to move up to X tokens from their
+> account). When executing the returned messages, it turns out the the buyer
+> doesn't have sufficient token B (or provided an insufficient allowance). This
+> message will fail, causing the entire sequence to be reverted. Transaction
+> failed, the offer was not marked as fulfilled, and no tokens changed hands.
+> - https://docs.cosmwasm.com/architecture/actor.html
+
+But this kind of rollback model goes against the point of adopting the Actor
+model, for parallelism and concurrency.  You want actors to be independent and
+to run at full capacity, not having to roll back here because of an error
+there.  Another way to say this is that Go already got concurrency right, when
+it made the primitives of cheap Go-routines and channels.  An Actor can be
+represented by a Go-routine, and there it's clear to see that you won't get
+parallelism by rolling back many go-routine states upon a local error.
+
+I've shown how it would work here with "keepers" which is a Cosmos SDK
+construct, which are stateless objects with methods that take stateful context.
+Imagine if you didn't have to use these abstractions for keeping persistent
+state, but rather persistence was as simple as using a map, so you don't have
+to pass the context around.  We can enable this with AST sanitization and
+transformation, or we can adapt a Go interpreter or create our own.  (I'm
+slightly leaning toward doing the latter.)
+
+Given that in a massively multi-user smart contracting system, the persisted
+state is so much greater than what can be held in memory, and assuming that
+most smart contracts only run occasionally, the traditional garbage collection
+debate tips in favor of garbage collection for blockchain smart contract
+programming.  So while any implementation can eventually get optimized in Rust,
+as GoEthereum was later dominated by Parity, I bet that smart contract
+innovation and initial implementation should first happen in other languages
+like Solidity, its descendants, or else be derived from modern langauges like
+Go.
+
+It's not that I beieve that Go is the perfect language, but rather that it's a
+fairly good base.  The ideal language might have some additional conventions
+(perhaps in the form of comments) that let us write assertions, invariants, or
+other statements on a piece of code.  This is building upon an intuition or
+premise that I hold, which is that we want our languages to have procedural
+statements, logic and data encapsulation, concurrency (as actors or
+goroutines), and other tags or decorators; and that from upon some minimal
+language that supports these features, we should build upwards and outwards the
+intelligence in code to analyze them, fuzz them, prove them, simulate them, and
+more; and that the elements of this system as represented by the AST should not
+just be Turing complete, but also intuitive, such that the formal proofs about
+our code can be likewise intuitive.  You don't get intuition by going through
+machine-level instructions, wasm, the EVM, any more than by converting proofs
+to set-theory.
+
+I dream of a sufficiently good language with a secure implementation, improving
+upon something like Go, and writing intuitive and simple but competitively
+performant blockchain/consesnsus software as well as smart contracts, all in
+this one minimal universal procedural language, such that the whole stack from
+the consensus engine to the smart contract, such that all the layers can
+benefit from all the tooling built in a multiplicative way.  That's why I'm
+working on Tendermint/Classic and committing to Go and Go-Amino-X.  The
+objective is to reach [zero
+Kelvin](https://urbit.org/blog/toward-a-frozen-operating-system/) with a
+minimal common language.  It's the defense we need against institutional
+subversion.
+
 ### Photons
+TODO
 
 ### Peggy & Alternatives
+TODO
+
+We should test Peggy on a zone and disclaim its risks.
+
+ * Maximizing security via mandatory ATOM validator participation sends the
+   wrong message of security, and sounds like a disaster in the making, except
+without the ability to roll back as in the DAO hack.
+
+ * Combined with additional surface area from continuious updates and CosmWASM
+   as well as WASM, presents an extremely dangerous opportunity for black hat
+hackers, and not just from outside of our ecosystem.  This creates enormous
+incentive to attract internal corruption.
+
+ * If both are adopted on the hub this year or next, I bet that there will be a
+   major exploit.
+
+> Due to this consideration it is a requirement that this version of Peggy is
+> run on a Cosmos zone where the total value of the staking token is greater
+> than the total value locked in the Peggy Ethereum bridge at all times.
+>
+> *This makes the Cosmos Hub the ideal zone to deploy Peggy*.
+> - https://github.com/UniFiDAO/unifidao-proposals/blob/master/UP-101.md
+
+On the other hand, *naively putting everything on the hub makes it so that
+there is no security against +2/3 stealing the coins in the bridge*.  The
+interchain staking ecosystem isn't sufficiently mature enough for the Hub to be
+held accountable in the case of PoW peg failure.  
+
+You could make this work by not just taking the Cosmos validator set as the
+signers on the Ethereum side smart contract, but by staking free tokens and
+deriving an independent signing set.  That way there can be checks and
+balances, but independence cannot be ensured in a pseudonymous token system.
+
+The previous sections of this document explain how to make chains secure via
+interchain staking.  If there were a Peggy hub interchain staked from the
+Cosmos Hub, the Cosmos Hub could slash the x-staked tokens.
+
+TODO write more
 
 ### Interchain Staking
+TODO
 
 ### Liquid Staking
- - Interchain accounts
- - Proportional slashing
+TODO
 
-### Contracts
- - Ethermint
- - CosmWasm
- - More
+ * Interchain accounts
+ * Proportional slashing
 
-### Tendermint/Classic
+### Proposal X
+TODO
 
-### Merkle Store Improvements
+ * Keep Cosmos-Hub minimal.
+ * Implement minimaml replicated security.
+ * Run peggy and cosmwasm as replicated zones, not on the leader-chain.
+ * Last resort, hard-spoon a new minimal zone with party aligned voters.
