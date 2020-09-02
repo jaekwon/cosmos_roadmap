@@ -1,62 +1,4 @@
-# Table of Contents
-
-## State of the Ecosystem
-
-This post assumes some background information about the state of the Cosmos
-ecosystem, as detailed in [XXX include ECOSYSTEM-URL].  If you aren't aware of all the
-work going on below, please check it out, or jump to the details of any
-particulr project by clicking on the link below:
-
-- IBC [XXX make hyperlink to portion in above ECOSYSTEM-URL, and for all items below].
-- Stargate
-- Cosmwasm
-- Liquid Staking
-- DEX
-- Ethermint
-- Peggy
-- Shared Security
-- Stargate
-- Starport
-- Tendermint/Classic
-
-[NOTE: Keep above list in sync]
-
-## Shape of Cosmos
-
-- Shared Security
-  - Interchain Staking
-  - Replicated Security
-  - [XXX]
-
-- Exchanging
-  - Simple Orderbook
-  - Simple AMM
-  - General API
-  - DEX Zones
-
-- Function of the Hub
-
-- Pegging to PoW vs PoS
-
-## Short Term Priorities
-
-## Potential Pitfalls
-
-- Peg Risk
-  - vs immutable PoW vs PoS
-- Reducing Surface Area
-- Liquid Staking
-- State Accumulation
-
-## Credits and References
-
-If you can read this, this essay is a work in progress. If you want to
-contribute to this essay, just make some insightful comments or sections in the
-form of a PR or comment, and I'll add them here.
-
-<!-- ######################################## -->
-
-# Shape of Cosmos
+# The Shape of Cosmos
 
 ## Shared Security
 
@@ -441,6 +383,16 @@ type AMMMarketState struct {
 }
 ```
 
+### DEX Zones
+TODO
+
+The disadvantage to direct interchain exchanging is that it's potentially
+expensive -- the IBC connection and trade transactions may be prohibitively
+expensive on some chains where the transaction fee is high due to high volume.
+For this reason (and more, TODO) there will also be DEX zones that specialize
+in exchanging.  The disadvantage of trading in a DEX zones is that it incurs
+additional risk (namely the failure of the DEX zone and its dependencies).
+
 ## Function of the Hub and ATOM Token
 
 If there is to be many hubs and many staking tokens, what is the purpose of the
@@ -536,16 +488,7 @@ isn't swayed by contributors eager to contribute for recognition, or
 competition with different shiny features.  It seeds competition around it for
 new innovations, and takes a stake in it.
 
-## Short Term Priorities
-
-Here are short term priorties beyond IBC.
-
-### DEX modules
-
-Already written about above.
-[XXX start mailing list].
-
-### Chain Upgrading
+## Chain Upgrading
 
 It's true that the hub will need to occasionally upgrade to support different
 IBC implementations or plugins.  This is the most compelling reason for
@@ -589,7 +532,7 @@ protocols or similar ones to TendermintCore and the CosmosSDK.
 
 Moving on, to smart contracts.
 
-### Smart Contracts
+## Smart Contracts
 
 While I support WASM, and projects like CosmWASM, I am strongly opposed to
 running WASM on the Cosmos Hub's lead-chain.  Primarily, because it increases
@@ -620,7 +563,7 @@ functions.  And in the context of massive multiuser smart contracts, native
 speed of execution doesn't matter as much as Merkle store latency, so you might
 as well run an AST interpreter.
 
-#### Notes on CosmWASM
+### Notes on CosmWASM
 
 WASM itself is a near-machine-level virtual machine that is designed for
 restricted memory allocation and isolation.  What it doesn't do is prescribe
@@ -787,25 +730,13 @@ Kelvin](https://urbit.org/blog/toward-a-frozen-operating-system/) with a
 minimal common language.  It's the defense we need against institutional
 subversion.
 
-### Photons
+## Photons
 TODO
 
-### Peggy & Alternatives
-TODO
+## Token-Pegging to PoW
 
-We should test Peggy on a zone and disclaim its risks.
-
- * Maximizing security via mandatory ATOM validator participation sends the
-   wrong message of security, and sounds like a disaster in the making, except
-without the ability to roll back as in the DAO hack.
-
- * Combined with additional surface area from continuious updates and CosmWASM
-   as well as WASM, presents an extremely dangerous opportunity for black hat
-hackers, and not just from outside of our ecosystem.  This creates enormous
-incentive to attract internal corruption.
-
- * If both are adopted on the hub this year or next, I bet that there will be a
-   major exploit.
+Much of this section is a response to a proposal in the works regarding Althea
+Peggy.
 
 > Due to this consideration it is a requirement that this version of Peggy is
 > run on a Cosmos zone where the total value of the staking token is greater
@@ -814,35 +745,145 @@ incentive to attract internal corruption.
 > *This makes the Cosmos Hub the ideal zone to deploy Peggy*.
 > - https://github.com/UniFiDAO/unifidao-proposals/blob/master/UP-101.md
 
-On the other hand, *naively putting everything on the hub makes it so that
-there is no security against +2/3 stealing the coins in the bridge*.  The
-interchain staking ecosystem isn't sufficiently mature enough for the Hub to be
-held accountable in the case of PoW peg failure.  
+In this section, I argue that we should not peg to PoW chains on the hub.
 
-You could make this work by not just taking the Cosmos validator set as the
-signers on the Ethereum side smart contract, but by staking free tokens and
-deriving an independent signing set.  That way there can be checks and
-balances, but independence cannot be ensured in a pseudonymous token system.
+Two-way-pegging is when you lock up tokens on one chain, materialize these
+tokens in another chain such that they can be used there, with the option to
+withdraw back on the original chain in the future.
 
-The previous sections of this document explain how to make chains secure via
-interchain staking.  If there were a Peggy hub interchain staked from the
-Cosmos Hub, the Cosmos Hub could slash the x-staked tokens.
+*Pegging to PoW is just as dangerous as centralized custody of Bitcoins*.  You
+can't remove the risk that the custodians of the PoW tokens won't just steal
+the underlying collateral.  This is for a variety of reasons, but the most
+salient one is that PoW chains generally aim to be "immutable" and
+"governless".  Bitcoin and Ethereum have both forked in the past, but both
+strongly prefer to stay immutable and governless.
 
-TODO write more
+Between two Cosmos well-governed BFT-PoS chains connected by IBC, it's possible
+for the two chains to come to agreement about the protocols in case of zone or
+hub failure.  But there is probably no negotiating with Bitcoin or Ethereum if
+a Bitcoin address or Ethereum smart contract loses its tokens due to malicious
+theft or software bugs.
 
-### Interchain Staking
-TODO
+Furthermore, with pseudonymous or anonymous key holders of a peg to a PoW
+chain, if what is at stake is less in value than what is locked in the peg, the
+expected outcome should be nothing other than theft.  Don't expect an anonymous
+stranger to keep your ETH safe if they have nothing to lose and something to
+gain by absconding with it.  This picture changes with real-world identity and
+reputation working in legal jurisdictions with cross-jurisdictional cooperation
+and the rule of law and the threat of guns, but it isn't always clear how to
+value such things, and they often fail anyways. In short, in general, *pegs to
+PoW chains or any governless chains require overcollateralization*.
 
-### Liquid Staking
+*Consensus-based peg collateralization requires the safe handling of +1/3
+Byzantine faults, which means that some form of interchain staking is
+necessary*.  It isn't sufficient to slap a peg to Ethereum on the Cosmos Hub
+and require that all ATOM takers also stake on the Ethereum peg, because
+nothing is keeping the hub accountable in the case of +1/3 failure.  In theory,
+the entire ecosystem (including centralized exchanges and users) could keep the
+ATOM stakers accountable even in the case of +2/3 failure -- by forking the hub
+-- but there's no guarantee that such coordination will happen.
+
+NOTE: In previous sections, I argued that x-staking ATOMs is not a good idea.
+Arguably, a portion of ATOMs could be staked on the hub only for pegging, and
+the hub could make an exception for pegging to Bitcoin and Ethereum; but the
+fungibility between ETH pegging and Hub staking makes both more susceptible to
+a hostile takover, reduces the legitimacy of the self-sovereignty of the hub,
+and introduces a requirement to try to balance incentivization between hub
+staking and peg staking, with may fail.  
+
+This isn't to say that IBC pegs to BFT chains can't fail. *Pegs to
+well-governed PoS chains still require controls to prevent catastrophic
+failure*.  For example, IBC token pegging could be made more safe by throttling
+the amount of tokens that can be (peg) transferred via IBC, to ensure that even
+in the case of zone failures due to bugs, hacks, malice, etc, massive amounts
+of tokens can't be instantly transferred and dispersed, or smurfed.  Maybe not
+for IBCv1, but we should have some options with IBCv2.
+
+Pegging to PoW is like operating a gold depository.  You can have a centralized
+depository (one owned by a single owner) or a depository with decentralized
+ownership (one owned by shareholders), but either way the gold may disappear.
+Overcollateralization helps, but isn't perfect, as the exchange rate may
+fluctuate wildly.  Another disincentive against theft (or negligence or
+incompetence) is the rule of law, as enforced by various jurisdictions.  The
+most secure pegging system would leverage both on-chain collateralization as
+well as the law of various legal jurisdictions.  Since each jurisdiction is
+different and people want to derisk for the potential for centralized failure,
+*the logical steady state solution to PoW pegging to Bitcoin or Ethereum
+involves many independent pegs, and a way to combine these tokens on the Cosmos
+side e.g.  by creating a basket token*.  This gives the ecosystem the ability
+to innovate peg designs permissionlessly, and gives the users the ability to
+pick the solutions that work for them.
+
+Regarding pegging to PoW chains in general, we still have a lot of questions
+left, and some we can't even answer ourselves.
+
+* What should be the procedure for recovering peg-locked ERC20 tokens if +1/3
+  of the voting power disappears forever? (This also implies a chain halt). I
+think a form of time-based annealing would be best, so that the funds can
+eventually be recovered.
+* In case of consensus failure among peg signers (disagreement where none get
+  +2/3 votes), should one party receive all of the tokens or should the tokens
+be split among the forks?
+* How do we deal with drifting exchange rates to ensure overcollateralization?
+* What are the incentive economics of pegging?  It seems that peg token
+  providers should earn something (with the possible risk of damages), while
+pegged-token users should pay something over time.
+* What sort of legal agreement would best represent the responsibilities and
+  liabilities for peg signers/custodians/validators?
+* If +2/3 can move pegged tokens, only +2/3 of peg stakers may get slashed,
+  which means naive BFT-based pegs require 33% extra collateralization.  Should
+non-BFT (e.g. single-custodian) pegs also be supported?
+* What is the best way (or what are the ways) to integrate pegging with
+  regulatory frameworks and legal jurisdictions?
+
+Given all of the above, we should test various Peggy implementations on a zone,
+x-staked from the hub, and disclaim its risks.  Recently there was a proposal
+in the making to put the Althea peggy logic on the hub.  One of the stated
+reasons for this was to provide maximal security for the peg, but as explained,
+we shouldn't do this.  Not just because of the reasons made prior, but also
+because *maximizing security via large ATOM staking participation sends the
+wrong message regarding the security of the peg*. Software takes time to
+mature, and that large amounts of money should not be put at risk in the
+beginning.  Also, we should be careful about signaling and the risk of failure
+and damage to the reputation of the ecosystem.  If a zone on Cosmos fails,
+that's one thing... if an official peg of Cosmos fails, it could cause
+existential harm to the entire Cosmos ecosystem.  And with pegs to PoW, we
+won't be able to roll back like Ethereum did with the DAO hack.
+
+The risk of subversion (internal and external) or opportunistic malice is too
+great when we combine the radically increased surface area introduced by
+CosmWASM and WASM and Peggy on the Hub.  Not only would we be better off by
+enriching the ecosystem with new zones that prove these new technologies
+outside of the hub; these technologies are also not mature enough to guarantee
+any security on the scale of a billion dollars.  Should the hub evolve in a way
+such that both of these new technolgies (as well as numerous updates to
+Tendermint and the SDK) get compiled into the hub any time soon, the incentive
+for failure is so great, that massive failure is inevitable. It would be
+unethical for me to support such a system, and I would feel compelled to fork
+it or to try to halt it.
+
+TODO : Althea's Peggy should be called Althea Peggy, and we should incentivize
+for more Peggy experiments.
+
+## Liquid Staking
 TODO
 
  * Interchain accounts
  * Proportional slashing
 
-### Proposal X
-TODO
+## Proposal X
 
- * Keep Cosmos-Hub minimal.
- * Implement minimaml replicated security.
- * Run peggy and cosmwasm as replicated zones, not on the leader-chain.
- * Last resort, hard-spoon a new minimal zone with party aligned voters.
+The proposal is pretty simple:
+
+ * Keep Cosmos-Hub minimal and type-checked, no wasm or peggy.
+ * Run Peggy and CosmWASM as independent sovereign zones "branched" from the
+   hub, with their own staking tokens.
+
+The following are implied:
+
+ * Implement PHOTONs.
+ * Implement interchain-staking and replicated security and replicated sharded,
+   and offer validation as a service for many zones.
+
+Finally, should this proposal fail, as a last resort, hard-spoon a new minimal
+zone with tokens hard-spooned to aligned voters, and exit the old chain.
