@@ -60,6 +60,8 @@ branched and interchain staked, and it can go on and offer replicated security,
 sharded replicated security, or sharded non-replicated security to any number
 of zones.
 
+TODO: ETHERMINT
+
 ### Sunny's Opt-In Security
 
 See: https://docs.google.com/document/d/1bXfqV7lQvWwcwJrmseffqvhpZmh8GxytsTksyqXthrc/edit
