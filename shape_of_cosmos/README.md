@@ -1,12 +1,13 @@
 # The Shape of Cosmos
 
-## Shared Security
-
-Any chain can act as a hub.  For decentralized crypto security, ideally we have
-many interoperable hubs that compete for security.
-
-Any two chains can connect directly exchange tokens without going through a DEX
-zone, thereby eliminating any external third party risk.
+The default bias of decentralized development is for all parties to petition to
+add more features to the root chain.  While encouraging experimentation and
+permissionless innovation in various fronts such as those projects listed here,
+we would also do well to promote hub minimalism, and to leverage the
+affordances of IBC and shared security to improve the Cosmos ecosystem and
+bring value to the ATOM token.  The resulting system would be more secure, and
+the desired end result is not one hub but many that keep each other in check
+according to a common protocol of interchain accountability.
 
 The future shape of the interchain is a complex network graph; not a
 heirarchical dag, not a winner-take-all single blockchain system; not even a
@@ -14,11 +15,89 @@ DAG.  It will be complex interwoven network with interzone IBC links created
 (or not created) according to the cost-risk-benefit-analysis and regulatory
 considerations at the edges.
 
-This section will attempt to explain why I believe this to be true, and show
-what role the Cosmos Hub and the ATOM token can maintain, for the best
-product-market fit and for the good of the ecosystem.
+The goal of this document is to convince the ecosystem to adopt this philosophy
+by expounding upon it in relation to abstract theory as well as present day
+innovations.
+
+
+## Shared Security
+
+The term "shared security" refers to a family of protocols that address
+concerns like scaling, security, economic incentives, and usability.  To be
+more specific, I'll describe several models of shared security.
+
+### Simple Replicated Security
+
+In "simple replicated security", there is a leader-chain that has a mutable
+validator set, and one or more follow-chains that replicate the validator set
+of the leader chain.
+
+It's possible to do this without a bi-directional IBC connection, but merely a
+one-way channel of state reads.  No "packets" need to get involved at all, but
+there is the notion of a peer chain with validator set updates which are
+submitted on the follow-chains. We could require that follow-chains follow
+validator set updates frequently (but not necessarily all of them) say by
+halting if necessary until the changes are applied.
+
+NOTE: This use for a one-way IBC channel (and there are more use-cases too) is
+compelling.  Here's an interface design question: What's the most elegant
+implementation of bi-directional IBC communication channels that are composed
+of two one-way channels?
+
+This form of replicated security requires that all validators on the
+leader-chain also validate all the follow-chains.  It's also possible to shard
+(sharD, not sharE) the validator set, such that not all validators are required
+on follow-chains.  So this would be "sharded replicated security".  If you
+don't require the follow-chain validators to be selected from the set of
+validators on the leader-chain, then you have "sharded (non-replicated)
+security".  
+
+In all cases, evidence of signing faults get recorded in the leader-chain,
+consequences happen, and all the follow-chains follow suit.
+
+You can also have interchain-staked replicated security.  A new hub can be
+branched and interchain staked, and it can go on and offer replicated security,
+sharded replicated security, or sharded non-replicated security to any number
+of zones.
+
+### Sunny's Opt-In Security
+
+TODO: link to Sunny's PDF
+
+In Sunny's shared security model, there is one leader chain that determines the
+validator set as in simple replicated security, but validators get to opt into
+validating on other zones.  If a validator does something bad on one of these
+zones being validated by the leader chain's validator, they get slashed on the
+leader chain, the same way that they would with simple replicated security.
+
+The benefit of this approach is that shared security becomes permissionless.  A
+validator doesn't need the consent of other validators to begin validating for
+any zone that wants to pay for validation services.
+
+Zones and the validators that opt in to validate are registered on the leader
+chain for accountability and to formalize open participation among the
+validators.
+
+This isn't much more difficult to implement than the simple replicated security
+model -- mostly we just need an extra module on the leader chain to keep track
+of opt-in participation.
+
+### The Economics of Shared Security
+
+Whether simple replicated security or something more fluid like Sunny's model,
+the value of a system that provides secure transaction capability to many
+blockchains is could be called "a cash cow".  If the Cosmos Hub leads in
+rolling out these features first in a responsible way, the value proposition of
+the ATOM token would be secured.  And if we do this while preserving openness
+and multi-hub accountability, the crypto defi ecosystem would be secured as
+well.
 
 ### Interchain Staking
+
+__NOTE: This section on Interchain Staking appears first under "Shared Security"
+because I believe it provides framing in terms of the greater ecosystem that we
+are building for.  However, it isn't representative of what should be
+prioritized first, which will be described later.__
 
 The basic construction of staking *on a single chain* is simple.  For example
 on the Cosmos Hub, there are ATOM holders, and any ATOM holders can "stake"
@@ -248,43 +327,6 @@ tokens for zone and ecosystem safety*.  I'm not aware of any other way to tell
 without any prior information, whether a blockchain has any stake behind it or
 not.  A lot of us have been on a gardening kick, so lets call this "branching".
 
-### Replicated Security
-
-When I say "shared security", I mean one of two very different things.  Maybe I
-should stop saying "shared security" altogether.  Besides interchain staking,
-like having a lifeline in a peer when one loses one's mind, there is also
-replicated validator sets, which is more like having a leader and followers,
-where the followers have no agency at all.  These follow-chains follow the
-validator set changes as they happen on the single leader-chain.
-
-It's possible to do this without a bi-directional IBC connection, but merely a
-one-way channel of state reads.  No "packets" need to get involved at all, but
-there is the notion of a peer chain with validator set updates which are
-submitted on the follow-chains. We could require that follow-chains follow
-validator set updates frequently (but not necessarily all of them) say by
-halting if necessary until the changes are applied.
-
-NOTE: This use for a one-way IBC channel (and there are more use-cases too) is
-compelling.  Here's an interface design question: What's the most elegant
-implementation of bi-directional IBC communication channels that are composed
-of two one-way channels?
-
-This form of replicated security requires that all validators on the
-leader-chain also validate all the follow-chains.  It's also possible to shard
-(sharD, not sharE) the validator set, such that not all validators are required
-on follow-chains.  So this would be "sharded replicated security".  If you
-don't require the follow-chain validators to be selected from the set of
-validators on the leader-chain, then you have "sharded (non-replicated)
-security".  
-
-In all cases, evidence of signing faults get recorded in the leader-chain,
-consequences happen, and all the follow-chains follow suit.
-
-You can also have interchain-staked replicated security.  A new hub can be
-branched and interchain staked, and it can go on and offer replicated security,
-sharded replicated security, or sharded non-replicated security to any number
-of zones.
-
 ## Exchanging
 
 Assuming IBC and token peg transfers over IBC is implemented on chain A and
@@ -384,7 +426,9 @@ type AMMMarketState struct {
 ```
 
 ### DEX Zones
-TODO
+
+Any two chains can connect directly exchange tokens without going through a DEX
+zone, thereby eliminating any external third party risk.
 
 The disadvantage to direct interchain exchanging is that it's potentially
 expensive -- the IBC connection and trade transactions may be prohibitively
@@ -887,3 +931,16 @@ The following are implied:
 
 Finally, should this proposal fail, as a last resort, hard-spoon a new minimal
 zone with tokens hard-spooned to aligned voters, and exit the old chain.
+
+## Proposal Y
+
+Immediate Critical Roadmap.
+
+ * IBC followed by Sunny's model.
+ * Photons.
+
+Also:
+
+ * Interchain staking.
+ * CosmWASM and Peggy as new zones.
+ * More competition and experimentation.
