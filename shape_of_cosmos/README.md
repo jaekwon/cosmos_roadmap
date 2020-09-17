@@ -62,7 +62,7 @@ of zones.
 
 ### Sunny's Opt-In Security
 
-TODO: link to Sunny's PDF
+See: https://docs.google.com/document/d/1bXfqV7lQvWwcwJrmseffqvhpZmh8GxytsTksyqXthrc/edit
 
 In Sunny's shared security model, there is one leader chain that determines the
 validator set as in simple replicated security, but validators get to opt into
