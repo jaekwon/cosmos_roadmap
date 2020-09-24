@@ -870,7 +870,6 @@ subversion.
 ## Photons
 TODO
 
-
 ## Token-Pegging to PoW
 
 Much of this section is a response to a proposal in the works regarding Althea
