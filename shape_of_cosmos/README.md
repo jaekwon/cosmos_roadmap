@@ -329,6 +329,97 @@ tokens for zone and ecosystem safety*.  I'm not aware of any other way to tell
 without any prior information, whether a blockchain has any stake behind it or
 not.  A lot of us have been on a gardening kick, so lets call this "branching".
 
+### Addendum: On-Chain Staking Derivatives
+
+(C note: not sure this goes in this section, but will write up the 
+derivative idea we discussed).
+
+One challenge for holders of ATOM in deciding to bond or not is their perception
+of expected future asset flows (rewards from bonding and taking the risk of
+exposure to slashing, as well as penalties of the bonded capital due to 
+slash). Furthermore, for a participant to consider staking ATOM, they also
+lose the liquidity and optionality that comes along with holding the ATOM
+outright (i.e. being able to transact or allocate ATOM in a different way,
+perhaps through a different validator).
+
+A way to potentially address this challenge may be in permitting the 
+tokenizing of staked ATOM. Specifically, given a validator, XYZ, a
+given participant may generally wish to delegate ATOM to XYZ for XYZ 
+to bond on their behalf because they believe XYZ is a good validator. However,
+once that delegation is done on-chain, the participant that has delegated
+their ATOM to XYZ loses the ability to transact with the ATOM, borrow
+against their future expected asset flows, or contribute to price
+discovery of said future asset flows. Suppose we create, on-chain,
+the following conduit to tokenize the future asset flows of XYZ: issue
+the VAL_XYZ token (the denominator is arbitrary, but suppose for now it 
+is in the base unit of ATOM), where VAL_XYZ deterministically receives
+100% of the staking rewards (from the bonded ATOM) that XYZ has contributed.
+
+Ignoring implementation details for a moment, the benefit of VAL_XYZ to 
+the ecosystem is clear. First, it reduces the loss of liquidity and optionality
+that a given participant may have faced by choosing to stake their ATOM with XYZ.
+Instead of having no assets to hold onto (and having to wait for XYZ to decide to pay
+out staking rewards), the participant receives, in approximately real-time, the economic
+upside immediately of staking rewards. Furthermore, the participant now has
+the additional benefit of not only holding a claim to their delegated ATOM,
+but also a *productive* asset that holds a claim to their delegated ATOM,
+which means that they can also deposit their tokenized staked ATOM in another
+system to generate additional productive yield. This effectively allows them
+not only to borrow against their ATOM, which can be done through any collateralized
+lending system that supports ATOM, but also borrow against their *future expected
+asset flows* from staking with XYZ.
+
+The settlement of VAL_XYZ is also simple -- by allowing creation and destruction
+of VAL_XYZ token in direct 1:1 proportion of the underlying staked ATOM, it is
+simple to see how if the market price of VAL_XYZ were to deviate substantially from
+the actual expected future gains and losses of XYZ as a validator, an arbitrageur could
+step in to keep the market in line. (Precisely speaking, if the VAL_XYZ token were to trade
+too high, an arbitrageur could purchase ATOM at market, short the perpetual,
+then mint additional VAL_XYZ by staking some ATOM with XYZ, and then sell it at market,
+in which case if the arbitrageur is correct, the yield from the sold VAL_XYZ will
+exceed the return from short ATOM perpetual and actual asset flows from VAL_XYZ.
+Similarly, if VAL_XYZ is too cheap relative to the actual estimated future asset
+flows of XYZ, the arbitrageur can purchase VAL_XYZ at market, and simply wait and
+collect the asset flows that they are entitled to as share of XYZ's rewards.)
+
+In the case that XYZ acts incorrectly or is penalized during the course of being
+a validator (i.e. is slashed), the VAL_XYZ may lose perceived value (due to the
+overall market thinking that XYZ may be a less trustworthy or competent validator),
+but the initial bonded ATOM that was entrusted to XYZ is the only amount of capital
+at risk (and not any of the proceeds from holding VAL_XYZ, unless the holder had
+chosen to re-stake the emitted ATOM from holding VAL_XYZ with XYZ, thus increasing
+the units of VAL_XYZ that the participant holds, and also increase the basis of 
+their exposure to XYZ, which is, again, at their option to do so on-chain).
+
+Implementation wise, one way of treating the issuance of VAL_XYZ is thinking of
+a "wrapper pool" (non-custodial) that XYZ is itself a participant of, and in
+some sense a partial controller of (not in a custodial sense, since the ability for 
+XYZ to arbitrarily withdraw ATOM that a participant has entrusted to XYZ for the
+purposes of validating is not desired) the VAL_XYZ "ATOM Pool," and VAL_XYZ is simply
+a liquidity provider (LP) token that represents cryptographic proof of partial
+rights to extracting basis capital (initially staked ATOM, less pro-rata slashing 
+penalties) and resultant rewards (from XYZ performing as a skilled validator). 
+This greatly simplifies the mechanics of VAL_XYZ, as then no "push"-based issuance
+mechanism is needed for distributing the asset flows. (One downside of this style of
+implementation, however, is that it requires actions on the part of the holder of
+VAL_XYZ to extract ATOM from the pool periodicially lest there is a flaw in the
+implementation of the VAL_XYZ pool, not unlike the periodic responsible
+"harvesting" of yields that rewards-based pools often encourage.)
+
+One ecosystem benefit for introducing and popularizing the practice of tokenizing the
+asset flows from staked ATOM is that across the top 100 or so validators, the implicit
+yields (of staking ATOM with one of those validators) can be taken as a COSMOS reference
+rate for opportunity cost of ATOM, which itself, as an on-chain primitive building block,
+greatly reduces the friction for architecting additional financial instruments, as the
+effective "validator yield rate" (VYR) can become a standard for pricing in the 
+opportunity cost of ATOM. It is easy to imagine e.g. centralized exchanges also offering
+futures or swaps on VYR, as well as VYR being composed with other instruments to produce
+a healthier, more transparent ecosystem for COSMOS.
+
+(C note: can link to my chain-agnostic CYBOR idea write-up when appropriate -- 
+crypto yield baseline offered rate, that is validator yield agnostic.)
+
+
 ## Exchanging
 
 Assuming IBC and token peg transfers over IBC is implemented on chain A and
